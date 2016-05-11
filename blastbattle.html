@@ -1,0 +1,38 @@
+<!-- Blast Battle - Version 1.00a -->
+<!-- Created by Josh Bryant -->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<link href="style.css" rel="stylesheet" type="text/css">
+		<meta charset="UTF-8">
+		<title>Blast Battle</title>
+	</head>
+	
+	<body>
+		<button id="createNewWorld">Create new world</button>
+		
+		<form id="newWorldForm">
+			<fieldset>
+				<input name="worldName" placeholder="Name" type="text"></input>
+				<input name="worldSeed" placeholder="Seed" type="number"></input>
+			</fieldset>
+			<fieldset>
+				<div>Between:</div>
+				<input name="worldX1" placeholder="First x value" type="number"></input>
+				<div>and</div>
+				<input name="worldX2" placeholder="Second x value" type="number"></input>
+			</fieldset>
+			<button onclick="createNewWorld(this.form)">Generate</button>
+		</form>
+		
+		<div id="loading">Loading...</div>
+		
+		<canvas id="screen">Your browser does not support the HTML 5 <code>canvas</code> tag.</canvas>
+	</body>
+	
+	<!-- Import libraries and scripts -->
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script src="lib/mersenne-twister/mersenne-twister.min.js"></script>
+	<script src="script/script.js"></script>
+</html>
