@@ -17,19 +17,12 @@
 				<input name="worldName" placeholder="Name" type="text"></input>
 				<input name="worldSeed" placeholder="Seed" type="number"></input>
 			</fieldset>
-			<fieldset>
-				<div>Between:</div>
-				<input name="worldX1" placeholder="First x value" type="number"></input>
-				<div>and</div>
-				<input name="worldX2" placeholder="Second x value" type="number"></input>
-			</fieldset>
 			<button onclick="createNewWorld(this.form)">Generate</button>
-			<!--<div id="progressBar">
-				<div id="label">0%</div>
-			</div>-->
 		</form>
 		
-		<div id="loading">Loading...</div>
+		<div id="progressBar">
+			<div id="label">0%</div>
+		</div>
 		
 		<canvas id="screen">Your browser does not support the HTML 5 <code>canvas</code> tag.</canvas>
 	</body>

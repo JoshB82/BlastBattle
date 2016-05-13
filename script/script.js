@@ -36,9 +36,13 @@ var game = {
 			world.noBalls += 1;
 		});
 		this.context = this.canvas.getContext("2d");
-		this.context.strokeStyle = "#007B0C";
+		this.context.strokeStyle = "#FF0000";
 		// this.worlds = [];
 		this.gravAcc = -9.81;
+		this.dirt = new Image();
+		this.dirt.src = "images/dirt.png";
+		this.grass = new Image();
+		this.grass.src = "images/grass.png";
 	},
 	clear: function() {
 		this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
@@ -62,22 +66,22 @@ function ball(x,y,radius) {
 }
 
 function createNewWorld(form) {
-	$("#loading").css("visibility","visible");
+	$("progressBar").css("display","block");
 	$("#createNewWorld").css("display","none");
 	$("#newWorldForm").css("display","none");
 	game.clear();
-	world = new newWorld(form.worldName.value,parseInt(form.worldSeed.value,10),parseInt(form.worldX1.value,10),parseInt(form.worldX2.value,10),5,0.25);
+	world = new newWorld(form.worldName.value,parseInt(form.worldSeed.value,10),5,0.25);
 	world.generate();
 	world.draw();
-	$("#loading").css("visibility","hidden");
+	$("#progressBar").css("display","none");
 }
 
-function newWorld(name,seed,X1,X2,noOctaves,persistence) {
+function newWorld(name,seed,noOctaves,persistence) {
 	this.name = name;
-	document.title = this.name;
+	document.title = this.name+" - Blast Battle";
 	this.seed = seed;
-	this.x1 = X1;
-	this.x2 = X2;
+	this.x1 = 0;
+	this.x2 = 100;
 	this.noOctaves = noOctaves;
 	this.randomGenerator = [];
 	for (var o = 0; o < this.noOctaves; o++) {
@@ -93,8 +97,14 @@ function newWorld(name,seed,X1,X2,noOctaves,persistence) {
 	this.draw = function() {
 		for (var x = this.x1; x <= this.x2-0.5; x+=0.5) {
 			game.context.beginPath();
-			game.context.moveTo(convertRange(x,[this.x1,this.x2],[0,1000]),this.coordsY[Math.floor(x*2)]);
-			game.context.lineTo(convertRange(x+0.5,[this.x1,this.x2],[0,1000]),this.coordsY[Math.floor((x+0.5)*2)]);
+			var x1 = convertRange(x,[this.x1,this.x2],[0,1000]);
+			var x2 = convertRange(x+0.5,[this.x1,this.x2],[0,1000]);
+			game.context.moveTo(x1,this.coordsY[Math.floor(x*2)]);
+			game.context.lineTo(x2,this.coordsY[Math.floor((x+0.5)*2)]);
+			for (var d = 0; d < output(this.coordsY[Math.floor(x*2)]); d+=6) {
+				game.context.drawImage(game.dirt,(x1+x2)/2-3,output(d),6,6);
+			}
+			game.context.drawImage(game.grass,(x1+x2)/2-3,output(d),6,6);
 			game.context.stroke();
 		}
 		game.context.save();
@@ -157,6 +167,5 @@ function cubicInterpolate(v0,v1,v2,v3,x) {
 }
 
 function output(value) {
-	//alert(game.canvas.height-value);
 	return game.canvas.height-value;
 }
