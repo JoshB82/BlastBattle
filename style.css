@@ -12,5 +12,12 @@ html, body {
 }
 
 #newWorldForm, #loading {
-	visibility: hidden;
+	display: none;
+}
+
+#label {
+	text-align: center;
+	line-height: 30px;
+	color: white;
+	background-color: blue;
 }

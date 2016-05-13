@@ -5,7 +5,7 @@
 $(function() {
 	
 	$("#createNewWorld").click(function() {
-		$("#newWorldForm").css("visibility","visible");
+		$("#newWorldForm").css("display","block");
 	});
 
 	$("#clear").click(function() {
@@ -52,8 +52,10 @@ function ball(x,y,radius) {
 	this.vy = 0;
 	this.radius = radius;
 	this.draw = function() {
+		game.clear();
+		world.draw();
 		game.context.beginPath();
-		game.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+		game.context.arc(this.x,output(this.y),this.radius,0,2*Math.PI);
 		game.context.fill();
 		game.context.stroke();
 	}
@@ -61,7 +63,8 @@ function ball(x,y,radius) {
 
 function createNewWorld(form) {
 	$("#loading").css("visibility","visible");
-	$("#newWorldForm").css("visibility","hidden");
+	$("#createNewWorld").css("display","none");
+	$("#newWorldForm").css("display","none");
 	game.clear();
 	world = new newWorld(form.worldName.value,parseInt(form.worldSeed.value,10),parseInt(form.worldX1.value,10),parseInt(form.worldX2.value,10),5,0.25);
 	world.generate();
@@ -104,7 +107,7 @@ function newWorld(name,seed,X1,X2,noOctaves,persistence) {
 			world.balls[b].y += world.balls[b].vy;
 			world.balls[b].draw();
 		}
-	},10);
+	},1);
 }
 
 function findY(x,world) {
@@ -139,6 +142,7 @@ function noise(x,octave,world) {
 
 function convertRange(value,r1,r2) {return (value-r1[0])*(r2[1]-r2[0])/(r1[1]-r1[0])+r2[0]}
 
+// Function not used
 function cosineInterpolate(a,b,x) {
 	var f = (1-Math.cos(x))*0.5;
 	return a*(1-f)+b*f;
@@ -153,5 +157,6 @@ function cubicInterpolate(v0,v1,v2,v3,x) {
 }
 
 function output(value) {
+	//alert(game.canvas.height-value);
 	return game.canvas.height-value;
 }
