@@ -95,6 +95,7 @@ function newWorld(name,seed,noOctaves,persistence) {
 		}
 	}
 	this.draw = function() {
+		game.context.save(); // ?
 		game.context.beginPath();
 		game.context.moveTo(this.x1,output(this.coordsY[0]));
 		for (var x = this.x1; x <= this.x2-0.5; x+=0.5) {
@@ -108,12 +109,26 @@ function newWorld(name,seed,noOctaves,persistence) {
 			game.context.drawImage(game.grass,(x1+x2)/2,output(d),6,6);
 			*/
 		}
-		
-		game.context.moveTo(game.canvas.width,output(0));
-		game.context.moveTo(0,output(0));
-		game.context.fill();
-		
+		// Check moveTo() vs. lineTo()
 		game.context.stroke();
+		game.context.lineTo(game.canvas.width,output(0));
+		game.context.lineTo(0,output(0));
+		game.context.clip();
+		var highest = this.coordsY[0];
+		for (var i = 1; i < this.coordsY.length; i++) {
+			if (this.coordsY[i] > highest) highest = this.coordsY[i];
+		}
+		for (var x = 0; x < game.canvas.width; x+=6) {
+			for (var y = 0; y < highest+5; y+=6) {
+				game.context.drawImage(game.dirt,x,output(y),6,6);
+			}
+		}
+		/* Grass (check +5)
+		for (var z = 0; z < game.canvas.width; z+=6) {
+			game.context.drawImage(game.grass,z,output(y),6,6);
+		}
+		*/
+		game.context.restore(); // ?
 	}
 	this.balls = [];
 	this.noBalls = 0;
@@ -133,7 +148,7 @@ function findY(x,world) {
 		var amplitude = Math.pow(world.persistence,i);
 		total += InterpolatedNoise(x*frequency,i,world)*amplitude;
 	}
-	return total;
+	return total+200;
 }
 
 function InterpolatedNoise(x,octave,world) {
