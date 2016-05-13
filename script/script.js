@@ -91,23 +91,29 @@ function newWorld(name,seed,noOctaves,persistence) {
 	this.coordsY = [];
 	this.generate = function() {
 		for (var x = this.x1; x <= this.x2; x+=0.5) {
-			this.coordsY.push(output(findY(x,this)));
+			this.coordsY.push(findY(x,this));
 		}
 	}
 	this.draw = function() {
+		game.context.beginPath();
+		game.context.moveTo(this.x1,output(this.coordsY[0]));
 		for (var x = this.x1; x <= this.x2-0.5; x+=0.5) {
-			game.context.beginPath();
-			var x1 = convertRange(x,[this.x1,this.x2],[0,1000]);
-			var x2 = convertRange(x+0.5,[this.x1,this.x2],[0,1000]);
-			game.context.moveTo(x1,this.coordsY[Math.floor(x*2)]);
-			game.context.lineTo(x2,this.coordsY[Math.floor((x+0.5)*2)]);
-			for (var d = 0; d < output(this.coordsY[Math.floor(x*2)]); d+=6) {
-				game.context.drawImage(game.dirt,(x1+x2)/2-3,output(d),6,6);
+			/*var x1 = convertRange(x,[this.x1,this.x2],[0,game.canvas.width]);*/
+			var x2 = convertRange(x+0.5,[this.x1,this.x2],[0,game.canvas.width]);
+			game.context.lineTo(x2,output(this.coordsY[Math.floor((x+0.5)*2)]));
+			/* Block generation
+			for (var d = 0; d < this.coordsY[Math.floor(x*2)]; d+=6) {
+				game.context.drawImage(game.dirt,(x1+x2)/2,output(d),6,6);
 			}
-			game.context.drawImage(game.grass,(x1+x2)/2-3,output(d),6,6);
-			game.context.stroke();
+			game.context.drawImage(game.grass,(x1+x2)/2,output(d),6,6);
+			*/
 		}
-		game.context.save();
+		
+		game.context.moveTo(game.canvas.width,output(0));
+		game.context.moveTo(0,output(0));
+		game.context.fill();
+		
+		game.context.stroke();
 	}
 	this.balls = [];
 	this.noBalls = 0;
