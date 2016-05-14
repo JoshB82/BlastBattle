@@ -36,7 +36,6 @@ var game = {
 			world.noBalls += 1;
 		});
 		this.context = this.canvas.getContext("2d");
-		this.context.strokeStyle = "#FF0000";
 		// this.worlds = [];
 		this.gravAcc = -9.81;
 		this.dirt = new Image();
@@ -57,6 +56,10 @@ function ball(x,y,radius) {
 	this.radius = radius;
 	this.draw = function() {
 		game.clear();
+		game.context.beginPath();
+		game.context.rect(0,0,game.canvas.width,game.canvas.height);
+		game.context.fillStyle = "#89E3FF";
+		game.context.fill();
 		world.draw();
 		game.context.beginPath();
 		game.context.arc(this.x,output(this.y),this.radius,0,2*Math.PI);
@@ -66,51 +69,49 @@ function ball(x,y,radius) {
 }
 
 function createNewWorld(form) {
-	$("progressBar").css("display","block");
+	$("#progressBar").css("display","block");
+	$("#progressBar").css("position","absolute");
 	$("#createNewWorld").css("display","none");
 	$("#newWorldForm").css("display","none");
-	game.clear();
-	world = new newWorld(form.worldName.value,parseInt(form.worldSeed.value,10),5,0.25);
+	world = new newWorld(form.worldName.value,form.worldSeed.value,5,0.25);
+	game.context.beginPath();
+	game.context.rect(0,0,game.canvas.width,game.canvas.height);
+	game.context.fillStyle = "#89E3FF";
+	game.context.fill();
 	world.generate();
 	world.draw();
-	$("#progressBar").css("display","none");
+	//$("#progressBar").css("display","none");
 }
 
 function newWorld(name,seed,noOctaves,persistence) {
 	this.name = name;
 	document.title = this.name+" - Blast Battle";
-	this.seed = seed;
-	this.x1 = 0;
-	this.x2 = 100;
+	this.seed = hashCode(seed);
 	this.noOctaves = noOctaves;
 	this.randomGenerator = [];
-	for (var o = 0; o < this.noOctaves; o++) {
-		this.randomGenerator.push(new MersenneTwister(this.seed+(o+1)/10));
-	}
+	for (var o = 0; o < this.noOctaves; o++) this.randomGenerator.push(new MersenneTwister(this.seed+(o+1)/10));
 	this.persistence = persistence;
 	this.coordsY = [];
+	this.step = 10;
 	this.generate = function() {
-		for (var x = this.x1; x <= this.x2; x+=0.5) {
+		var currentPercentage = 0;
+		// check for loop limits
+		for (var x = 0; x <= 70; x+=this.step) {
 			this.coordsY.push(findY(x,this));
+			currentPercentage += this.step/70*100;
+			$("#progressBar").css("width",currentPercentage+"%");
+			$("#progressBarLabel").text(currentPercentage+"%");
 		}
 	}
 	this.draw = function() {
-		game.context.save(); // ?
+		// Draw ground
+		game.context.save();
 		game.context.beginPath();
-		game.context.moveTo(this.x1,output(this.coordsY[0]));
-		for (var x = this.x1; x <= this.x2-0.5; x+=0.5) {
-			/*var x1 = convertRange(x,[this.x1,this.x2],[0,game.canvas.width]);*/
-			var x2 = convertRange(x+0.5,[this.x1,this.x2],[0,game.canvas.width]);
-			game.context.lineTo(x2,output(this.coordsY[Math.floor((x+0.5)*2)]));
-			/* Block generation
-			for (var d = 0; d < this.coordsY[Math.floor(x*2)]; d+=6) {
-				game.context.drawImage(game.dirt,(x1+x2)/2,output(d),6,6);
-			}
-			game.context.drawImage(game.grass,(x1+x2)/2,output(d),6,6);
-			*/
+		game.context.moveTo(0,output(this.coordsY[0]));
+		var step = game.canvas.width/(this.coordsY.length-1);
+		for (var x = 0; x <= game.canvas.width; x+=step) {
+			game.context.lineTo(x,output(this.coordsY[x/step]));
 		}
-		// Check moveTo() vs. lineTo()
-		game.context.stroke();
 		game.context.lineTo(game.canvas.width,output(0));
 		game.context.lineTo(0,output(0));
 		game.context.clip();
@@ -123,12 +124,30 @@ function newWorld(name,seed,noOctaves,persistence) {
 				game.context.drawImage(game.dirt,x,output(y),6,6);
 			}
 		}
-		/* Grass (check +5)
-		for (var z = 0; z < game.canvas.width; z+=6) {
-			game.context.drawImage(game.grass,z,output(y),6,6);
+		game.context.restore();
+		
+		// Draw rotated grass
+		var oldX = 0;
+		var oldY = output(this.coordsY[0]);
+		for (var x = 0; x <= game.canvas.width; x+=step) {
+			var x1 = oldX;
+			var x2 = x;
+			var y1 = oldY;
+			var y2 = output(this.coordsY[x/step]);
+			
+			var angle = Math.atan((y2-y1)/step);
+			var m = (y2-y1)/(x2-x1);
+			for (var x3 = 0; x3 < step; x3+=6) {
+				game.context.save();
+				game.context.translate(x1+x3,m*x3+y1);
+				game.context.rotate(angle);
+				game.context.drawImage(game.grass,0,0,6,6);
+				game.context.restore();
+			}
+			
+			var oldX = x2;
+			var oldY = y2;
 		}
-		*/
-		game.context.restore(); // ?
 	}
 	this.balls = [];
 	this.noBalls = 0;
@@ -189,4 +208,16 @@ function cubicInterpolate(v0,v1,v2,v3,x) {
 
 function output(value) {
 	return game.canvas.height-value;
+}
+
+// http://mediocredeveloper.com/wp/?p=55
+function hashCode(str) {
+	var hash = 0;
+	if (str.length == 0) return hash;
+	for (i = 0; i < str.length; i++) {
+		var c = str.charCodeAt(i);
+		hash = ((hash << 5) - hash)+c;
+		hash = hash & hash;
+	}
+	return hash;
 }
