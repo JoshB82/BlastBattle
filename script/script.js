@@ -5,6 +5,7 @@
 $(function() {
 	
 	$("#createNewWorld").click(function() {
+		$("#createNewWorld").css("display","none");
 		$("#newWorldForm").css("display","block");
 	});
 
@@ -65,6 +66,7 @@ function ball(x,y,radius) {
 		game.context.arc(this.x,output(this.y),this.radius,0,2*Math.PI);
 		game.context.fill();
 		game.context.stroke();
+		// NOTE: Redraw the background after updating the balls!
 	}
 }
 
@@ -92,7 +94,7 @@ function newWorld(name,seed,noOctaves,persistence) {
 	for (var o = 0; o < this.noOctaves; o++) this.randomGenerator.push(new MersenneTwister(this.seed+(o+1)/10));
 	this.persistence = persistence;
 	this.coordsY = [];
-	this.step = 10;
+	this.step = 1;
 	this.generate = function() {
 		var currentPercentage = 0;
 		// check for loop limits
@@ -109,8 +111,9 @@ function newWorld(name,seed,noOctaves,persistence) {
 		game.context.beginPath();
 		game.context.moveTo(0,output(this.coordsY[0]));
 		var step = game.canvas.width/(this.coordsY.length-1);
-		for (var x = 0; x <= game.canvas.width; x+=step) {
-			game.context.lineTo(x,output(this.coordsY[x/step]));
+		// WHY MATH.FLOOR IN FOR LOOP! (AND BELOW)
+		for (var x = 0; Math.floor(x) <= game.canvas.width; x+=step) {
+			game.context.lineTo(x,output(this.coordsY[Math.floor(x/step)]));
 		}
 		game.context.lineTo(game.canvas.width,output(0));
 		game.context.lineTo(0,output(0));
@@ -124,16 +127,15 @@ function newWorld(name,seed,noOctaves,persistence) {
 				game.context.drawImage(game.dirt,x,output(y),6,6);
 			}
 		}
-		game.context.restore();
 		
 		// Draw rotated grass
 		var oldX = 0;
 		var oldY = output(this.coordsY[0]);
-		for (var x = 0; x <= game.canvas.width; x+=step) {
+		for (var x = 0; Math.floor(x) <= game.canvas.width; x+=step) {
 			var x1 = oldX;
 			var x2 = x;
 			var y1 = oldY;
-			var y2 = output(this.coordsY[x/step]);
+			var y2 = output(this.coordsY[Math.floor(x/step)]);
 			
 			var angle = Math.atan((y2-y1)/step);
 			var m = (y2-y1)/(x2-x1);
@@ -148,6 +150,7 @@ function newWorld(name,seed,noOctaves,persistence) {
 			var oldX = x2;
 			var oldY = y2;
 		}
+		game.context.restore();
 	}
 	this.balls = [];
 	this.noBalls = 0;
@@ -156,6 +159,9 @@ function newWorld(name,seed,noOctaves,persistence) {
 			world.balls[b].vy += game.gravAcc;
 			world.balls[b].y += world.balls[b].vy;
 			world.balls[b].draw();
+			if (world.balls[b].y < 0) {
+				world.balls[b].y *= -0.7;
+			}
 		}
 	},1);
 }
