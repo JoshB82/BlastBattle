@@ -94,11 +94,11 @@ function newWorld(name,seed,noOctaves,persistence) {
 	for (var o = 0; o < this.noOctaves; o++) this.randomGenerator.push(new MersenneTwister(this.seed+(o+1)/10));
 	this.persistence = persistence;
 	this.coordsY = [];
-	this.step = 1;
+	this.step = 0.1;
 	this.generate = function() {
 		var currentPercentage = 0;
 		// check for loop limits
-		for (var x = 0; x <= 70; x+=this.step) {
+		for (var x = 0; x <= 40; x+=this.step) {
 			this.coordsY.push(findY(x,this));
 			currentPercentage += this.step/70*100;
 			$("#progressBar").css("width",currentPercentage+"%");
@@ -183,7 +183,6 @@ function InterpolatedNoise(x,octave,world) {
 	var v1 = SmoothNoise(integerX,octave,world);
 	var v2 = SmoothNoise(integerX+1,octave,world);
 	var v3 = SmoothNoise(integerX+2,octave,world);
-	//return cosineInterpolate(v1,v2,fractionalX);
 	return cubicInterpolate(v0,v1,v2,v3,fractionalX);
 }
 
@@ -197,12 +196,6 @@ function noise(x,octave,world) {
 }
 
 function convertRange(value,r1,r2) {return (value-r1[0])*(r2[1]-r2[0])/(r1[1]-r1[0])+r2[0]}
-
-// Function not used
-function cosineInterpolate(a,b,x) {
-	var f = (1-Math.cos(x))*0.5;
-	return a*(1-f)+b*f;
-}
 
 function cubicInterpolate(v0,v1,v2,v3,x) {
 	var P = (v3-v2)-(v0-v1);
@@ -222,7 +215,7 @@ function hashCode(str) {
 	if (str.length == 0) return hash;
 	for (i = 0; i < str.length; i++) {
 		var c = str.charCodeAt(i);
-		hash = ((hash << 5) - hash)+c;
+		hash = ((hash << 5) - hash) + c;
 		hash = hash & hash;
 	}
 	return hash;

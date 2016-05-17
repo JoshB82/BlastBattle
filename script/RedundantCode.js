@@ -12,3 +12,10 @@ for (var z = 0; z < game.canvas.width; z+=6) {
 	game.context.drawImage(game.grass,z,output(y),6,6);
 }
 */
+
+//return cosineInterpolate(v1,v2,fractionalX);
+
+function cosineInterpolate(a,b,x) {
+	var f = (1-Math.cos(x))*0.5;
+	return a*(1-f)+b*f;
+}
