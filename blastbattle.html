@@ -16,6 +16,7 @@
 			<fieldset>
 				<input name="worldName" placeholder="Name" type="text"></input>
 				<input name="worldSeed" placeholder="Seed" type="text"></input>
+				<input id="randomSeed" type="checkbox">Use random seed</input>
 				<button onclick="createNewWorld(this.form)">Generate</button>
 			</fieldset>
 		</form>
@@ -33,4 +34,5 @@
 	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
 	<script src="lib/mersenne-twister/mersenne-twister.min.js"></script>
 	<script src="script/script.js"></script>
+	<script src="script/noise.js"></script>
 </html>

@@ -17,6 +17,14 @@ $(function() {
 		e.preventDefault();
 	});
 	
+	$("#randomSeed").change(function() {
+		if ($("#randomSeed").is(":checked")) {
+			$("input[name='worldSeed']").prop('disabled',true);
+		} else {
+			$("input[name='worldSeed']").prop('disabled',false);
+		}
+	});
+	
 	game.init();
 });
 
@@ -75,7 +83,11 @@ function createNewWorld(form) {
 	$("#progressBar").css("position","absolute");
 	$("#createNewWorld").css("display","none");
 	$("#newWorldForm").css("display","none");
-	world = new newWorld(form.worldName.value,form.worldSeed.value,5,0.25);
+	if ($("#randomSeed").is(":checked")) {
+		world = new newWorld(form.worldName.value,String(Math.random()*2E8+1E8),5,0.25);
+	} else {
+		world = new newWorld(form.worldName.value,form.worldSeed.value,5,0.25);
+	}
 	game.context.beginPath();
 	game.context.rect(0,0,game.canvas.width,game.canvas.height);
 	game.context.fillStyle = "#89E3FF";
@@ -89,6 +101,7 @@ function newWorld(name,seed,noOctaves,persistence) {
 	this.name = name;
 	document.title = this.name+" - Blast Battle";
 	this.seed = hashCode(seed);
+	// console.log(this.seed)
 	this.noOctaves = noOctaves;
 	this.randomGenerator = [];
 	for (var o = 0; o < this.noOctaves; o++) this.randomGenerator.push(new MersenneTwister(this.seed+(o+1)/10));
@@ -100,7 +113,7 @@ function newWorld(name,seed,noOctaves,persistence) {
 		// check for loop limits
 		for (var x = 0; x <= 40; x+=this.step) {
 			this.coordsY.push(findY(x,this));
-			currentPercentage += this.step/70*100;
+			currentPercentage += this.step/40*100;
 			$("#progressBar").css("width",currentPercentage+"%");
 			$("#progressBarLabel").text(currentPercentage+"%");
 		}
@@ -137,7 +150,7 @@ function newWorld(name,seed,noOctaves,persistence) {
 			var y1 = oldY;
 			var y2 = output(this.coordsY[Math.floor(x/step)]);
 			
-			var angle = Math.atan((y2-y1)/step);
+			var angle = Math.atan((y2-y1)/step); // ??
 			var m = (y2-y1)/(x2-x1);
 			for (var x3 = 0; x3 < step; x3+=6) {
 				game.context.save();
@@ -150,7 +163,7 @@ function newWorld(name,seed,noOctaves,persistence) {
 			var oldX = x2;
 			var oldY = y2;
 		}
-		game.context.restore();
+		game.context.restore(); // ??
 	}
 	this.balls = [];
 	this.noBalls = 0;
@@ -159,50 +172,13 @@ function newWorld(name,seed,noOctaves,persistence) {
 			world.balls[b].vy += game.gravAcc;
 			world.balls[b].y += world.balls[b].vy;
 			world.balls[b].draw();
-			if (world.balls[b].y < 0) {
-				world.balls[b].y *= -0.7;
+			if (world.balls[b].y < 200) {
+				world.balls[b].y = 200;
+				world.balls[b].vy *= -0.7;
+				// world.balls.splice(b,1)
 			}
 		}
 	},1);
-}
-
-function findY(x,world) {
-	var total = 0;
-	for (var i = 0; i < world.noOctaves; i++) {
-		var frequency = Math.pow(2,i);
-		var amplitude = Math.pow(world.persistence,i);
-		total += InterpolatedNoise(x*frequency,i,world)*amplitude;
-	}
-	return total+200;
-}
-
-function InterpolatedNoise(x,octave,world) {
-	var integerX = Math.floor(x);
-	var fractionalX = x-integerX;
-	var v0 = SmoothNoise(integerX-1,octave,world);
-	var v1 = SmoothNoise(integerX,octave,world);
-	var v2 = SmoothNoise(integerX+1,octave,world);
-	var v3 = SmoothNoise(integerX+2,octave,world);
-	return cubicInterpolate(v0,v1,v2,v3,fractionalX);
-}
-
-function SmoothNoise(x,octave,world) {return noise(x,octave,world)/2+noise(x-1,octave,world)/4+noise(x+1,octave,world)/4}
-
-function noise(x,octave,world) {
-	var noiseY = 0;
-	world.randomGenerator[octave] = new MersenneTwister(world.seed);
-	for (var f = 1; f <= x; f++) {noiseY = world.randomGenerator[octave].next()}
-	return convertRange(noiseY,[0,1E8],[-1,1]);
-}
-
-function convertRange(value,r1,r2) {return (value-r1[0])*(r2[1]-r2[0])/(r1[1]-r1[0])+r2[0]}
-
-function cubicInterpolate(v0,v1,v2,v3,x) {
-	var P = (v3-v2)-(v0-v1);
-	var Q = (v0-v1)-P;
-	var R = v2-v0;
-	var S = v1;
-	return P*Math.pow(x,3) + Q*Math.pow(x,2) + R*x + S;
 }
 
 function output(value) {
