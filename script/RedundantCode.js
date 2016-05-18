@@ -19,3 +19,10 @@ function cosineInterpolate(a,b,x) {
 	var f = (1-Math.cos(x))*0.5;
 	return a*(1-f)+b*f;
 }
+
+/*
+var highest = this.coordsY[0];
+for (var i = 1; i < this.coordsY.length; i++) {
+	if (this.coordsY[i] > highest) highest = this.coordsY[i];
+}
+*/

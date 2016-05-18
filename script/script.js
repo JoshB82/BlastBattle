@@ -39,9 +39,9 @@ var game = {
 			if (typeof world != "undefined") world.draw();
 		});
 		this.canvas.addEventListener("click",function(e) {
-			var x = undefined?e.layerX:e.offsetX;
-			var y = undefined?e.layerY:e.offsetY;
-			world.balls.push(new ball(x,y,5));
+			var x = undefined ? e.layerX : e.offsetX;
+			var y = undefined ? e.layerY : e.offsetY;
+			world.balls.push(new ball(x,output(y),5));
 			world.noBalls += 1;
 		});
 		this.context = this.canvas.getContext("2d");
@@ -59,7 +59,7 @@ var game = {
 
 function ball(x,y,radius) {
 	this.x = x;
-	this.y = output(y);
+	this.y = y;
 	this.vx = 0;
 	this.vy = 0;
 	this.radius = radius;
@@ -72,6 +72,7 @@ function ball(x,y,radius) {
 		world.draw();
 		game.context.beginPath();
 		game.context.arc(this.x,output(this.y),this.radius,0,2*Math.PI);
+		game.context.fillStyle = "#F71713";
 		game.context.fill();
 		game.context.stroke();
 		// NOTE: Redraw the background after updating the balls!
@@ -131,12 +132,10 @@ function newWorld(name,seed,noOctaves,persistence) {
 		game.context.lineTo(game.canvas.width,output(0));
 		game.context.lineTo(0,output(0));
 		game.context.clip();
-		var highest = this.coordsY[0];
-		for (var i = 1; i < this.coordsY.length; i++) {
-			if (this.coordsY[i] > highest) highest = this.coordsY[i];
-		}
+		var max = Math.max(...this.coordsY);
+		// Check lack of +5
 		for (var x = 0; x < game.canvas.width; x+=6) {
-			for (var y = 0; y < highest+5; y+=6) {
+			for (var y = 0; y < max; y+=6) {
 				game.context.drawImage(game.dirt,x,output(y),6,6);
 			}
 		}
@@ -148,6 +147,7 @@ function newWorld(name,seed,noOctaves,persistence) {
 			var x1 = oldX;
 			var x2 = x;
 			var y1 = oldY;
+			// Do you need the 2 coordinates?; x2-x1 would be step?
 			var y2 = output(this.coordsY[Math.floor(x/step)]);
 			
 			var angle = Math.atan((y2-y1)/step); // ??
@@ -167,16 +167,23 @@ function newWorld(name,seed,noOctaves,persistence) {
 	}
 	this.balls = [];
 	this.noBalls = 0;
+	// Remove property
 	this.interval = setInterval(function() {
+		var step = game.canvas.width/(world.coordsY.length-1);
 		for (var b = 0; b < world.balls.length; b++) {
 			world.balls[b].vy += game.gravAcc;
 			world.balls[b].y += world.balls[b].vy;
-			world.balls[b].draw();
-			if (world.balls[b].y < 200) {
-				world.balls[b].y = 200;
+			var x1 = world.balls[b].x - world.balls[b].x % step;
+			var x2 = x1+step;
+			var y1 = world.coordsY[Math.floor(x1/step)];
+			var y2 = world.coordsY[Math.floor(x2/step)];
+			var yBoundary = ((y2-y1)/(x2-x1))*(world.balls[b].x-x1)+y1;
+			if (world.balls[b].y < yBoundary) {
+				world.balls[b].y = yBoundary;
 				world.balls[b].vy *= -0.7;
 				// world.balls.splice(b,1)
 			}
+			world.balls[b].draw();
 		}
 	},1);
 }
