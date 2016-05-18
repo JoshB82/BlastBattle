@@ -80,10 +80,8 @@ function ball(x,y,radius) {
 }
 
 function createNewWorld(form) {
-	$("#progressBar").css("display","block");
-	$("#progressBar").css("position","absolute");
-	$("#createNewWorld").css("display","none");
 	$("#newWorldForm").css("display","none");
+	$("#progress").css("display","block");
 	if ($("#randomSeed").is(":checked")) {
 		world = new newWorld(form.worldName.value,String(Math.random()*2E8+1E8),5,0.25);
 	} else {
@@ -95,14 +93,13 @@ function createNewWorld(form) {
 	game.context.fill();
 	world.generate();
 	world.draw();
-	//$("#progressBar").css("display","none");
+	$("#progress").css("display","none");
 }
 
 function newWorld(name,seed,noOctaves,persistence) {
 	this.name = name;
 	document.title = this.name+" - Blast Battle";
 	this.seed = hashCode(seed);
-	// console.log(this.seed)
 	this.noOctaves = noOctaves;
 	this.randomGenerator = [];
 	for (var o = 0; o < this.noOctaves; o++) this.randomGenerator.push(new MersenneTwister(this.seed+(o+1)/10));
@@ -110,13 +107,10 @@ function newWorld(name,seed,noOctaves,persistence) {
 	this.coordsY = [];
 	this.step = 0.1;
 	this.generate = function() {
-		var currentPercentage = 0;
 		// check for loop limits
 		for (var x = 0; x <= 40; x+=this.step) {
+			$("#progress progress").val(x*2.5);
 			this.coordsY.push(findY(x,this));
-			currentPercentage += this.step/40*100;
-			$("#progressBar").css("width",currentPercentage+"%");
-			$("#progressBarLabel").text(currentPercentage+"%");
 		}
 	}
 	this.draw = function() {
