@@ -46,11 +46,51 @@ var game = {
 		});
 		this.context = this.canvas.getContext("2d");
 		// this.worlds = [];
+		this.elasticity = 0.75;
 		this.gravAcc = -9.81;
 		this.dirt = new Image();
 		this.dirt.src = "images/dirt.png";
 		this.grass = new Image();
 		this.grass.src = "images/grass.png";
+		this.interval = setInterval(function() {
+			game.clear();
+			game.context.beginPath();
+			game.context.rect(0,0,game.canvas.width,game.canvas.height);
+			game.context.fillStyle = "#89E3FF";
+			game.context.fill();
+			world.draw();
+			var step = game.canvas.width/(world.coordsY.length-1);
+			for (var b = 0; b < world.balls.length; b++) {
+				if (world.balls[b].ke != 0) {
+					world.balls[b].x += world.balls[b].vx;
+					world.balls[b].vy += game.gravAcc;
+					world.balls[b].y += world.balls[b].vy;
+					var x1 = world.balls[b].x - world.balls[b].x % step;
+					var x2 = x1+step;
+					var y1 = world.coordsY[Math.floor(x1/step)];
+					var y2 = world.coordsY[Math.floor(x2/step)];
+					var angle = Math.atan((y2-y1)/step);
+					var m = (y2-y1)/step;
+					var yBoundary = ((y2-y1)/step)*(world.balls[b].x-x1)+y1;
+					if (world.balls[b].y < yBoundary) {
+						world.balls[b].y = yBoundary;
+						var beforeX = world.balls[b].vx*game.elasticity;
+						var beforeY = world.balls[b].vy*game.elasticity;
+						if (m > 0) {
+							world.balls[b].vx = beforeY;
+							world.balls[b].vy = beforeX;
+						} else {
+							world.balls[b].vx = beforeY*-1;
+							world.balls[b].vy = beforeX*-1;
+						}
+						// world.balls.splice(b,1);
+					}
+					world.balls[b].ke = 0.5*world.balls[b].mass*Math.pow(Math.sqrt(Math.pow(world.balls[b].vx,2)+Math.pow(world.balls[b].vy,2)),2);
+					console.log(world.balls[b].ke);
+				}
+				world.balls[b].draw();
+			}
+		},1);
 	},
 	clear: function() {
 		this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
@@ -60,16 +100,12 @@ var game = {
 function ball(x,y,radius) {
 	this.x = x;
 	this.y = y;
+	this.mass = 1;
 	this.vx = 0;
 	this.vy = 0;
+	this.ke = null; // Not zero
 	this.radius = radius;
 	this.draw = function() {
-		game.clear();
-		game.context.beginPath();
-		game.context.rect(0,0,game.canvas.width,game.canvas.height);
-		game.context.fillStyle = "#89E3FF";
-		game.context.fill();
-		world.draw();
 		game.context.beginPath();
 		game.context.arc(this.x,output(this.y),this.radius,0,2*Math.PI);
 		game.context.fillStyle = "#F71713";
@@ -82,11 +118,8 @@ function ball(x,y,radius) {
 function createNewWorld(form) {
 	$("#newWorldForm").css("display","none");
 	$("#progress").css("display","block");
-	if ($("#randomSeed").is(":checked")) {
-		world = new newWorld(form.worldName.value,String(Math.random()*2E8+1E8),5,0.25);
-	} else {
-		world = new newWorld(form.worldName.value,form.worldSeed.value,5,0.25);
-	}
+	var seed = ($("#randomSeed").is(":checked")) ? String(Math.random()*2E8+1E8) : form.worldSeed.value;
+	world = new newWorld(form.worldName.value,seed,5,0.25);
 	game.context.beginPath();
 	game.context.rect(0,0,game.canvas.width,game.canvas.height);
 	game.context.fillStyle = "#89E3FF";
@@ -145,7 +178,7 @@ function newWorld(name,seed,noOctaves,persistence) {
 			var y2 = output(this.coordsY[Math.floor(x/step)]);
 			
 			var angle = Math.atan((y2-y1)/step); // ??
-			var m = (y2-y1)/(x2-x1);
+			var m = (y2-y1)/step;
 			for (var x3 = 0; x3 < step; x3+=6) {
 				game.context.save();
 				game.context.translate(x1+x3,m*x3+y1);
@@ -161,25 +194,6 @@ function newWorld(name,seed,noOctaves,persistence) {
 	}
 	this.balls = [];
 	this.noBalls = 0;
-	// Remove property
-	this.interval = setInterval(function() {
-		var step = game.canvas.width/(world.coordsY.length-1);
-		for (var b = 0; b < world.balls.length; b++) {
-			world.balls[b].vy += game.gravAcc;
-			world.balls[b].y += world.balls[b].vy;
-			var x1 = world.balls[b].x - world.balls[b].x % step;
-			var x2 = x1+step;
-			var y1 = world.coordsY[Math.floor(x1/step)];
-			var y2 = world.coordsY[Math.floor(x2/step)];
-			var yBoundary = ((y2-y1)/(x2-x1))*(world.balls[b].x-x1)+y1;
-			if (world.balls[b].y < yBoundary) {
-				world.balls[b].y = yBoundary;
-				world.balls[b].vy *= -0.7;
-				// world.balls.splice(b,1)
-			}
-			world.balls[b].draw();
-		}
-	},1);
 }
 
 function output(value) {
