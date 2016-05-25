@@ -46,8 +46,8 @@ var game = {
 		});
 		this.context = this.canvas.getContext("2d");
 		// this.worlds = [];
-		this.elasticity = 0.75;
-		this.gravAcc = -9.81;
+		this.elasticity = 0.45;
+		this.gravAcc = -6;
 		this.dirt = new Image();
 		this.dirt.src = "images/dirt.png";
 		this.grass = new Image();
@@ -61,7 +61,7 @@ var game = {
 			world.draw();
 			var step = game.canvas.width/(world.coordsY.length-1);
 			for (var b = 0; b < world.balls.length; b++) {
-				if (world.balls[b].ke != 0) {
+				if (world.balls[b].v > 5) {
 					world.balls[b].x += world.balls[b].vx;
 					world.balls[b].vy += game.gravAcc;
 					world.balls[b].y += world.balls[b].vy;
@@ -86,7 +86,8 @@ var game = {
 						// world.balls.splice(b,1);
 					}
 					world.balls[b].ke = 0.5*world.balls[b].mass*Math.pow(Math.sqrt(Math.pow(world.balls[b].vx,2)+Math.pow(world.balls[b].vy,2)),2);
-					console.log(world.balls[b].ke);
+					world.balls[b].v = Math.sqrt(Math.pow(world.balls[b].vx,2)+Math.pow(world.balls[b].vy,2));
+					console.log(world.balls[b].v);
 				}
 				world.balls[b].draw();
 			}
@@ -103,7 +104,8 @@ function ball(x,y,radius) {
 	this.mass = 1;
 	this.vx = 0;
 	this.vy = 0;
-	this.ke = null; // Not zero
+	this.v = 6; // Not zero
+	this.ke = 0;
 	this.radius = radius;
 	this.draw = function() {
 		game.context.beginPath();
